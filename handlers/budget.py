@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from services import MetaAPI, MetaAPIError
-from utils import back_keyboard, confirm_keyboard, get_account
+from utils import back_keyboard, confirm_keyboard, get_account, esc
 
 router = Router()
 
@@ -27,10 +27,10 @@ async def budget_campaign_start(callback: CallbackQuery, state: FSMContext):
     )
 
     await callback.message.edit_text(
-        "💰 *שינוי תקציב קמפיין*\n\n"
-        "הזן תקציב יומי חדש בדולרים (לדוגמה: `50` = $50/יום)\n\n"
+        "💰 <b>שינוי תקציב קמפיין</b>\n\n"
+        "הזן תקציב יומי חדש בדולרים (לדוגמה: <code>50</code> = $50/יום)\n\n"
         "⚠️ הסכום המינימלי הוא $1/יום",
-        parse_mode="Markdown",
+        parse_mode="HTML",
         reply_markup=back_keyboard(f"campaign:view:{account_key}:{campaign_id}")
     )
     await callback.answer()
@@ -50,10 +50,10 @@ async def budget_adset_start(callback: CallbackQuery, state: FSMContext):
     )
 
     await callback.message.edit_text(
-        "💰 *שינוי תקציב אדסט*\n\n"
-        "הזן תקציב יומי חדש בדולרים (לדוגמה: `30` = $30/יום)\n\n"
+        "💰 <b>שינוי תקציב אדסט</b>\n\n"
+        "הזן תקציב יומי חדש בדולרים (לדוגמה: <code>30</code> = $30/יום)\n\n"
         "⚠️ הסכום המינימלי הוא $1/יום",
-        parse_mode="Markdown",
+        parse_mode="HTML",
         reply_markup=back_keyboard("menu:adsets")
     )
     await callback.answer()
@@ -80,18 +80,15 @@ async def budget_receive_amount(message: Message, state: FSMContext):
         entity_type = "קמפיין" if data["entity_type"] == "campaign" else "אדסט"
 
         await message.answer(
-            f"⚠️ *אישור שינוי תקציב*\n\n"
-            f"תקציב יומי חדש ל{entity_type}: *${amount:.2f}*\n\n"
+            f"⚠️ <b>אישור שינוי תקציב</b>\n\n"
+            f"תקציב יומי חדש ל{esc(entity_type)}: <b>${amount:.2f}</b>\n\n"
             f"האם לאשר?",
-            parse_mode="Markdown",
-            reply_markup=confirm_keyboard(
-                "budget:confirm",
-                "budget:cancel"
-            )
+            parse_mode="HTML",
+            reply_markup=confirm_keyboard("budget:confirm", "budget:cancel")
         )
 
     except ValueError:
-        await message.answer("❌ הזן מספר תקין (לדוגמה: `50` או `49.99`)")
+        await message.answer("❌ הזן מספר תקין (לדוגמה: <code>50</code> או <code>49.99</code>)", parse_mode="HTML")
 
 
 @router.callback_query(F.data == "budget:confirm")
@@ -109,7 +106,7 @@ async def budget_confirm(callback: CallbackQuery, state: FSMContext):
         await state.clear()
         return
 
-    await callback.message.edit_text("⏳ *מעדכן תקציב...*", parse_mode="Markdown")
+    await callback.message.edit_text("⏳ <b>מעדכן תקציב...</b>", parse_mode="HTML")
 
     try:
         api = MetaAPI(acc.token, acc.account_id)
@@ -124,22 +121,22 @@ async def budget_confirm(callback: CallbackQuery, state: FSMContext):
         if success:
             entity_label = "הקמפיין" if entity_type == "campaign" else "האדסט"
             await callback.message.edit_text(
-                f"✅ *תקציב {entity_label} עודכן ל-${amount_display:.2f}/יום*",
-                parse_mode="Markdown",
+                f"✅ <b>תקציב {esc(entity_label)} עודכן ל-${amount_display:.2f}/יום</b>",
+                parse_mode="HTML",
                 reply_markup=back_keyboard("menu:campaigns")
             )
         else:
             await callback.message.edit_text(
-                "❌ *עדכון התקציב נכשל*",
-                parse_mode="Markdown",
+                "❌ <b>עדכון התקציב נכשל</b>",
+                parse_mode="HTML",
                 reply_markup=back_keyboard("menu:campaigns")
             )
 
     except MetaAPIError as e:
         await state.clear()
         await callback.message.edit_text(
-            f"❌ *שגיאת API:*\n`{e}`",
-            parse_mode="Markdown",
+            f"❌ <b>שגיאת API:</b>\n<code>{esc(e)}</code>",
+            parse_mode="HTML",
             reply_markup=back_keyboard("menu:campaigns")
         )
     await callback.answer()
@@ -149,8 +146,8 @@ async def budget_confirm(callback: CallbackQuery, state: FSMContext):
 async def budget_cancel(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text(
-        "❌ *ביטול שינוי תקציב*",
-        parse_mode="Markdown",
+        "❌ <b>ביטול שינוי תקציב</b>",
+        parse_mode="HTML",
         reply_markup=back_keyboard("menu:campaigns")
     )
     await callback.answer("בוטל")

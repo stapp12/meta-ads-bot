@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from services import MetaAPI, MetaAPIError
 from services.claude_service import analyze_campaigns, analyze_single_campaign, get_optimization_tips
-from utils import accounts_keyboard, back_keyboard, get_account
+from utils import accounts_keyboard, back_keyboard, get_account, esc
 
 router = Router()
 
@@ -10,8 +10,8 @@ router = Router()
 @router.callback_query(F.data == "menu:ai")
 async def ai_select_account(callback: CallbackQuery):
     await callback.message.edit_text(
-        "🤖 *ניתוח AI — Meta Ads*\n\nבחר חשבון לניתוח:",
-        parse_mode="Markdown",
+        "🤖 <b>ניתוח AI — Meta Ads</b>\n\nבחר חשבון לניתוח:",
+        parse_mode="HTML",
         reply_markup=accounts_keyboard("ai:account")
     )
     await callback.answer()
@@ -27,8 +27,8 @@ async def ai_analyze_account(callback: CallbackQuery):
         return
 
     await callback.message.edit_text(
-        f"🤖 *מנתח את {acc.name}...*\n\nאנא המתן, זה עלול לקחת כמה שניות.",
-        parse_mode="Markdown"
+        f"🤖 <b>מנתח את {esc(acc.name)}...</b>\n\nאנא המתן, זה עלול לקחת כמה שניות.",
+        parse_mode="HTML"
     )
 
     try:
@@ -44,15 +44,15 @@ async def ai_analyze_account(callback: CallbackQuery):
         ])
 
         await callback.message.edit_text(
-            f"🤖 *ניתוח AI — {acc.name}*\n\n{analysis}",
-            parse_mode="Markdown",
+            f"🤖 <b>ניתוח AI — {esc(acc.name)}</b>\n\n{esc(analysis)}",
+            parse_mode="HTML",
             reply_markup=kb
         )
 
     except MetaAPIError as e:
         await callback.message.edit_text(
-            f"❌ *שגיאת API:*\n`{e}`",
-            parse_mode="Markdown",
+            f"❌ <b>שגיאת API:</b>\n<code>{esc(e)}</code>",
+            parse_mode="HTML",
             reply_markup=back_keyboard("menu:ai")
         )
     await callback.answer()
@@ -67,7 +67,7 @@ async def ai_optimization_tips(callback: CallbackQuery):
         await callback.answer("❌ Token לא מוגדר", show_alert=True)
         return
 
-    await callback.message.edit_text("💡 *מכין טיפים לאופטימיזציה...*", parse_mode="Markdown")
+    await callback.message.edit_text("💡 <b>מכין טיפים לאופטימיזציה...</b>", parse_mode="HTML")
 
     try:
         api = MetaAPI(acc.token, acc.account_id)
@@ -75,15 +75,15 @@ async def ai_optimization_tips(callback: CallbackQuery):
         tips = await get_optimization_tips(campaigns, acc.name)
 
         await callback.message.edit_text(
-            f"💡 *טיפים לאופטימיזציה — {acc.name}*\n\n{tips}",
-            parse_mode="Markdown",
+            f"💡 <b>טיפים לאופטימיזציה — {esc(acc.name)}</b>\n\n{esc(tips)}",
+            parse_mode="HTML",
             reply_markup=back_keyboard(f"ai:account:{account_key}")
         )
 
     except MetaAPIError as e:
         await callback.message.edit_text(
-            f"❌ *שגיאת API:*\n`{e}`",
-            parse_mode="Markdown",
+            f"❌ <b>שגיאת API:</b>\n<code>{esc(e)}</code>",
+            parse_mode="HTML",
             reply_markup=back_keyboard("menu:ai")
         )
     await callback.answer()
@@ -100,7 +100,7 @@ async def ai_analyze_campaign(callback: CallbackQuery):
         await callback.answer("❌ Token לא מוגדר", show_alert=True)
         return
 
-    await callback.message.edit_text("🤖 *מנתח קמפיין...*", parse_mode="Markdown")
+    await callback.message.edit_text("🤖 <b>מנתח קמפיין...</b>", parse_mode="HTML")
 
     try:
         api = MetaAPI(acc.token, acc.account_id)
@@ -111,15 +111,15 @@ async def ai_analyze_campaign(callback: CallbackQuery):
         analysis = await analyze_single_campaign(campaign, insights)
 
         await callback.message.edit_text(
-            f"🤖 *ניתוח AI — {campaign.get('name', 'קמפיין')}*\n\n{analysis}",
-            parse_mode="Markdown",
+            f"🤖 <b>ניתוח AI — {esc(campaign.get('name', 'קמפיין'))}</b>\n\n{esc(analysis)}",
+            parse_mode="HTML",
             reply_markup=back_keyboard(f"campaign:view:{account_key}:{campaign_id}")
         )
 
     except MetaAPIError as e:
         await callback.message.edit_text(
-            f"❌ *שגיאת API:*\n`{e}`",
-            parse_mode="Markdown",
+            f"❌ <b>שגיאת API:</b>\n<code>{esc(e)}</code>",
+            parse_mode="HTML",
             reply_markup=back_keyboard(f"campaign:view:{account_key}:{campaign_id}")
         )
     await callback.answer()
@@ -136,7 +136,7 @@ async def ai_analyze_adset(callback: CallbackQuery):
         await callback.answer("❌ Token לא מוגדר", show_alert=True)
         return
 
-    await callback.message.edit_text("🤖 *מנתח אדסט...*", parse_mode="Markdown")
+    await callback.message.edit_text("🤖 <b>מנתח אדסט...</b>", parse_mode="HTML")
 
     try:
         api = MetaAPI(acc.token, acc.account_id)
@@ -146,15 +146,15 @@ async def ai_analyze_adset(callback: CallbackQuery):
         analysis = await analyze_single_campaign(fake_campaign, insights)
 
         await callback.message.edit_text(
-            f"🤖 *ניתוח AI — אדסט*\n\n{analysis}",
-            parse_mode="Markdown",
+            f"🤖 <b>ניתוח AI — אדסט</b>\n\n{esc(analysis)}",
+            parse_mode="HTML",
             reply_markup=back_keyboard("menu:adsets")
         )
 
     except MetaAPIError as e:
         await callback.message.edit_text(
-            f"❌ *שגיאת API:*\n`{e}`",
-            parse_mode="Markdown",
+            f"❌ <b>שגיאת API:</b>\n<code>{esc(e)}</code>",
+            parse_mode="HTML",
             reply_markup=back_keyboard("menu:adsets")
         )
     await callback.answer()

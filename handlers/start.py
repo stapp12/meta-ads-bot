@@ -18,10 +18,10 @@ async def cmd_start(message: Message):
         return
 
     await message.answer(
-        "👋 *ברוך הבא למנהל המודעות!*\n\n"
+        "👋 <b>ברוך הבא למנהל המודעות!</b>\n\n"
         "🎯 אני עוזר לך לנהל ולנתח את קמפיינים שלך ב-Meta Ads.\n\n"
         "בחר פעולה:",
-        parse_mode="Markdown",
+        parse_mode="HTML",
         reply_markup=main_menu_keyboard()
     )
 
@@ -30,14 +30,14 @@ async def cmd_start(message: Message):
 async def cmd_menu(message: Message):
     if not is_admin(message.from_user.id):
         return
-    await message.answer("📋 *תפריט ראשי*", parse_mode="Markdown", reply_markup=main_menu_keyboard())
+    await message.answer("📋 <b>תפריט ראשי</b>", parse_mode="HTML", reply_markup=main_menu_keyboard())
 
 
 @router.callback_query(F.data == "menu:back")
 async def back_to_menu(callback: CallbackQuery):
     await callback.message.edit_text(
-        "📋 *תפריט ראשי* — בחר פעולה:",
-        parse_mode="Markdown",
+        "📋 <b>תפריט ראשי</b> — בחר פעולה:",
+        parse_mode="HTML",
         reply_markup=main_menu_keyboard()
     )
     await callback.answer()
@@ -51,10 +51,10 @@ async def settings_menu(callback: CallbackQuery):
         [InlineKeyboardButton(text="🔙 חזרה", callback_data="menu:back")],
     ])
     await callback.message.edit_text(
-        f"⚙️ *הגדרות*\n\n"
-        f"⏰ דוח יומי שולח בשעה: *{config.REPORT_HOUR}:00*\n"
-        f"👤 Chat ID: `{config.ADMIN_CHAT_ID}`",
-        parse_mode="Markdown",
+        f"⚙️ <b>הגדרות</b>\n\n"
+        f"⏰ דוח יומי שולח בשעה: <b>{config.REPORT_HOUR}:00</b>\n"
+        f"👤 Chat ID: <code>{config.ADMIN_CHAT_ID}</code>",
+        parse_mode="HTML",
         reply_markup=keyboard
     )
     await callback.answer()

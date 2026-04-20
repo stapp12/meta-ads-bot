@@ -4,7 +4,7 @@ from services import MetaAPI, MetaAPIError
 from utils import (
     accounts_keyboard, adsets_keyboard, adset_actions_keyboard,
     back_keyboard, format_currency, format_number, format_percent,
-    status_emoji, status_hebrew, get_account
+    status_emoji, status_hebrew, get_account, esc
 )
 
 router = Router()
@@ -13,8 +13,8 @@ router = Router()
 @router.callback_query(F.data == "menu:adsets")
 async def adsets_select_account(callback: CallbackQuery):
     await callback.message.edit_text(
-        "📋 *ניהול אדסטים*\n\nבחר חשבון:",
-        parse_mode="Markdown",
+        "📋 <b>ניהול אדסטים</b>\n\nבחר חשבון:",
+        parse_mode="HTML",
         reply_markup=accounts_keyboard("adsets:account")
     )
     await callback.answer()
@@ -28,7 +28,7 @@ async def adsets_select_campaign(callback: CallbackQuery):
         await callback.answer("❌ Token לא מוגדר", show_alert=True)
         return
 
-    await callback.message.edit_text("⏳ *טוען קמפיינים...*", parse_mode="Markdown")
+    await callback.message.edit_text("⏳ <b>טוען קמפיינים...</b>", parse_mode="HTML")
 
     try:
         api = MetaAPI(acc.token, acc.account_id)
@@ -36,8 +36,8 @@ async def adsets_select_campaign(callback: CallbackQuery):
 
         if not campaigns:
             await callback.message.edit_text(
-                "📭 *אין קמפיינים בחשבון זה*",
-                parse_mode="Markdown",
+                "📭 <b>אין קמפיינים בחשבון זה</b>",
+                parse_mode="HTML",
                 reply_markup=back_keyboard("menu:adsets")
             )
             return
@@ -54,15 +54,15 @@ async def adsets_select_campaign(callback: CallbackQuery):
         buttons.append([InlineKeyboardButton(text="🔙 חזרה", callback_data="menu:adsets")])
 
         await callback.message.edit_text(
-            f"📋 *אדסטים — {acc.name}*\n\nבחר קמפיין:",
-            parse_mode="Markdown",
+            f"📋 <b>אדסטים — {esc(acc.name)}</b>\n\nבחר קמפיין:",
+            parse_mode="HTML",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
         )
 
     except MetaAPIError as e:
         await callback.message.edit_text(
-            f"❌ *שגיאת API:*\n`{e}`",
-            parse_mode="Markdown",
+            f"❌ <b>שגיאת API:</b>\n<code>{esc(e)}</code>",
+            parse_mode="HTML",
             reply_markup=back_keyboard("menu:adsets")
         )
     await callback.answer()
@@ -79,7 +79,7 @@ async def adsets_list(callback: CallbackQuery):
         await callback.answer("❌ Token לא מוגדר", show_alert=True)
         return
 
-    await callback.message.edit_text("⏳ *טוען אדסטים...*", parse_mode="Markdown")
+    await callback.message.edit_text("⏳ <b>טוען אדסטים...</b>", parse_mode="HTML")
 
     try:
         api = MetaAPI(acc.token, acc.account_id)
@@ -87,29 +87,29 @@ async def adsets_list(callback: CallbackQuery):
 
         if not adsets:
             await callback.message.edit_text(
-                "📭 *אין אדסטים בקמפיין זה*",
-                parse_mode="Markdown",
+                "📭 <b>אין אדסטים בקמפיין זה</b>",
+                parse_mode="HTML",
                 reply_markup=back_keyboard(f"adsets:account:{account_key}")
             )
             return
 
         active = sum(1 for a in adsets if a.get("status") == "ACTIVE")
         text = (
-            f"📋 *אדסטים*\n\n"
-            f"סה\"כ: *{len(adsets)}* | 🟢 פעילים: *{active}*\n\n"
+            f"📋 <b>אדסטים</b>\n\n"
+            f"סה\"כ: <b>{len(adsets)}</b> | 🟢 פעילים: <b>{active}</b>\n\n"
             "בחר אדסט:"
         )
 
         await callback.message.edit_text(
             text,
-            parse_mode="Markdown",
+            parse_mode="HTML",
             reply_markup=adsets_keyboard(adsets, account_key, campaign_id)
         )
 
     except MetaAPIError as e:
         await callback.message.edit_text(
-            f"❌ *שגיאת API:*\n`{e}`",
-            parse_mode="Markdown",
+            f"❌ <b>שגיאת API:</b>\n<code>{esc(e)}</code>",
+            parse_mode="HTML",
             reply_markup=back_keyboard("menu:adsets")
         )
     await callback.answer()
@@ -127,7 +127,7 @@ async def adset_view(callback: CallbackQuery):
         await callback.answer("❌ Token לא מוגדר", show_alert=True)
         return
 
-    await callback.message.edit_text("⏳ *טוען מידע על אדסט...*", parse_mode="Markdown")
+    await callback.message.edit_text("⏳ <b>טוען מידע על אדסט...</b>", parse_mode="HTML")
 
     try:
         api = MetaAPI(acc.token, acc.account_id)
@@ -144,29 +144,29 @@ async def adset_view(callback: CallbackQuery):
         budget_str = f"${int(daily_budget)/100:.2f}/יום" if daily_budget else "לפי קמפיין"
 
         text = (
-            f"{status_emoji(status)} *{adset.get('name', 'ללא שם')}*\n\n"
-            f"📌 סטטוס: *{status_hebrew(status)}*\n"
-            f"🎯 מטרת אופטימיזציה: {adset.get('optimization_goal', 'לא ידוע')}\n"
-            f"💰 תקציב: {budget_str}\n\n"
-            f"📊 *ביצועים (7 ימים):*\n"
-            f"💵 הוצאה: {format_currency(insights.get('spend', '0'))}\n"
-            f"👁️ חשיפות: {format_number(insights.get('impressions', '0'))}\n"
-            f"🖱️ קליקים: {format_number(insights.get('clicks', '0'))}\n"
-            f"📈 CTR: {format_percent(insights.get('ctr', '0'))}\n"
-            f"💵 CPC: {format_currency(insights.get('cpc', '0'))}\n"
-            f"🎯 Reach: {format_number(insights.get('reach', '0'))}"
+            f"{status_emoji(status)} <b>{esc(adset.get('name', 'ללא שם'))}</b>\n\n"
+            f"📌 סטטוס: <b>{esc(status_hebrew(status))}</b>\n"
+            f"🎯 מטרת אופטימיזציה: {esc(adset.get('optimization_goal', 'לא ידוע'))}\n"
+            f"💰 תקציב: {esc(budget_str)}\n\n"
+            f"📊 <b>ביצועים (7 ימים):</b>\n"
+            f"💵 הוצאה: {esc(format_currency(insights.get('spend', '0')))}\n"
+            f"👁️ חשיפות: {esc(format_number(insights.get('impressions', '0')))}\n"
+            f"🖱️ קליקים: {esc(format_number(insights.get('clicks', '0')))}\n"
+            f"📈 CTR: {esc(format_percent(insights.get('ctr', '0')))}\n"
+            f"💵 CPC: {esc(format_currency(insights.get('cpc', '0')))}\n"
+            f"🎯 Reach: {esc(format_number(insights.get('reach', '0')))}"
         )
 
         await callback.message.edit_text(
             text,
-            parse_mode="Markdown",
+            parse_mode="HTML",
             reply_markup=adset_actions_keyboard(adset_id, account_key, campaign_id, status)
         )
 
     except MetaAPIError as e:
         await callback.message.edit_text(
-            f"❌ *שגיאת API:*\n`{e}`",
-            parse_mode="Markdown",
+            f"❌ <b>שגיאת API:</b>\n<code>{esc(e)}</code>",
+            parse_mode="HTML",
             reply_markup=back_keyboard(f"adsets:list:{account_key}:{campaign_id}")
         )
     await callback.answer()

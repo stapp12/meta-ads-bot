@@ -1,5 +1,10 @@
+import html as _html
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import config
+
+
+def esc(text) -> str:
+    return _html.escape(str(text))
 
 
 def get_account(account_key: str):
