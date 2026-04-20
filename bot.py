@@ -5,7 +5,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import config
-from handlers import start, campaigns, reports, budget, ai_analysis, adsets
+from handlers import start, campaigns, reports, budget, adsets, create_campaign
 from scheduler import setup_scheduler
 
 logging.basicConfig(
@@ -26,7 +26,7 @@ async def main():
     dp.include_router(adsets.router)
     dp.include_router(reports.router)
     dp.include_router(budget.router)
-    dp.include_router(ai_analysis.router)
+    dp.include_router(create_campaign.router)
 
     # Setup scheduler
     scheduler = AsyncIOScheduler()

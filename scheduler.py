@@ -3,7 +3,6 @@ from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from config import config
 from services import MetaAPI, MetaAPIError
-from services.claude_service import analyze_campaigns
 from utils import esc
 
 logger = logging.getLogger(__name__)
@@ -50,13 +49,6 @@ async def send_daily_reports(bot: Bot):
             )
 
             await bot.send_message(config.ADMIN_CHAT_ID, report_text, parse_mode="HTML")
-
-            analysis = await analyze_campaigns(report_data, acc.name)
-            await bot.send_message(
-                config.ADMIN_CHAT_ID,
-                f"🤖 <b>ניתוח AI — {esc(acc.name)}</b>\n\n{esc(analysis)}",
-                parse_mode="HTML"
-            )
 
         except Exception as e:
             logger.error(f"שגיאה בדוח {acc.name}: {e}")

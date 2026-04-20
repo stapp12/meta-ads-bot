@@ -145,6 +145,34 @@ class MetaAPI:
         )
         return data
 
+    # ─── יצירת קמפיין ────────────────────────────────────────────
+
+    async def create_campaign(
+        self,
+        name: str,
+        objective: str,
+        daily_budget: int,
+        start_time: str,
+        end_time: str = None,
+    ) -> str:
+        """יוצר קמפיין חדש ומחזיר את ה-ID שלו"""
+        payload = {
+            "name": name,
+            "objective": objective,
+            "status": "PAUSED",
+            "daily_budget": str(daily_budget),
+            "start_time": f"{start_time}T00:00:00-0000",
+            "special_ad_categories": "[]",
+        }
+        if end_time:
+            payload["end_time"] = f"{end_time}T23:59:59-0000"
+
+        result = await self._post(f"{self.account_id}/campaigns", payload)
+        campaign_id = result.get("id")
+        if not campaign_id:
+            raise MetaAPIError("לא הוחזר ID לקמפיין החדש")
+        return campaign_id
+
     # ─── דוח יומי מלא ────────────────────────────────────────────
 
     async def get_full_daily_report(self) -> dict:

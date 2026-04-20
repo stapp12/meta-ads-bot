@@ -54,7 +54,7 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="📊 דוח יומי", callback_data="menu:report"),
          InlineKeyboardButton(text="🎯 קמפיינים", callback_data="menu:campaigns")],
         [InlineKeyboardButton(text="📋 אדסטים", callback_data="menu:adsets"),
-         InlineKeyboardButton(text="🤖 ניתוח AI", callback_data="menu:ai")],
+         InlineKeyboardButton(text="➕ צור קמפיין", callback_data="menu:create")],
         [InlineKeyboardButton(text="⚙️ הגדרות", callback_data="menu:settings")],
     ])
 
@@ -91,9 +91,8 @@ def campaign_actions_keyboard(campaign_id: str, account_key: str, status: str) -
         [InlineKeyboardButton(text=toggle_text, callback_data=f"campaign:toggle:{account_key}:{campaign_id}:{toggle_status}"),
          InlineKeyboardButton(text="📉 שנה תקציב", callback_data=f"budget:campaign:{account_key}:{campaign_id}")],
         [InlineKeyboardButton(text="📋 אדסטים", callback_data=f"adsets:list:{account_key}:{campaign_id}"),
-         InlineKeyboardButton(text="🤖 ניתוח AI", callback_data=f"ai:campaign:{account_key}:{campaign_id}")],
-        [InlineKeyboardButton(text="📊 נתונים", callback_data=f"campaign:insights:{account_key}:{campaign_id}"),
-         InlineKeyboardButton(text="🔙 חזרה", callback_data=f"campaigns:list:{account_key}")],
+         InlineKeyboardButton(text="📊 נתונים", callback_data=f"campaign:insights:{account_key}:{campaign_id}")],
+        [InlineKeyboardButton(text="🔙 חזרה", callback_data=f"campaigns:list:{account_key}")],
     ])
 
 
@@ -116,8 +115,7 @@ def adset_actions_keyboard(adset_id: str, account_key: str, campaign_id: str, st
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=toggle_text, callback_data=f"adset:toggle:{account_key}:{campaign_id}:{adset_id}:{toggle_status}"),
          InlineKeyboardButton(text="📉 שנה תקציב", callback_data=f"budget:adset:{account_key}:{adset_id}")],
-        [InlineKeyboardButton(text="🤖 ניתוח AI", callback_data=f"ai:adset:{account_key}:{adset_id}"),
-         InlineKeyboardButton(text="🔙 חזרה", callback_data=f"adsets:list:{account_key}:{campaign_id}")],
+        [InlineKeyboardButton(text="🔙 חזרה", callback_data=f"adsets:list:{account_key}:{campaign_id}")],
     ])
 
 
@@ -125,10 +123,24 @@ def report_period_keyboard(account_key: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📅 היום", callback_data=f"report:period:{account_key}:1"),
          InlineKeyboardButton(text="📅 7 ימים", callback_data=f"report:period:{account_key}:7")],
-        [InlineKeyboardButton(text="📅 30 ימים", callback_data=f"report:period:{account_key}:30"),
-         InlineKeyboardButton(text="🤖 ניתוח AI", callback_data=f"ai:account:{account_key}")],
+        [InlineKeyboardButton(text="📅 30 ימים", callback_data=f"report:period:{account_key}:30")],
         [InlineKeyboardButton(text="🔙 חזרה", callback_data="menu:report")],
     ])
+
+
+def objectives_keyboard() -> InlineKeyboardMarkup:
+    objectives = [
+        ("🎯 מודעות", "OUTCOME_AWARENESS"),
+        ("📈 תנועה", "OUTCOME_TRAFFIC"),
+        ("💬 מעורבות", "OUTCOME_ENGAGEMENT"),
+        ("📥 לידים", "OUTCOME_LEADS"),
+        ("🛒 מכירות", "OUTCOME_SALES"),
+        ("📱 אפליקציה", "OUTCOME_APP_PROMOTION"),
+    ]
+    buttons = [[InlineKeyboardButton(text=text, callback_data=f"create:objective:{val}")]
+               for text, val in objectives]
+    buttons.append([InlineKeyboardButton(text="❌ ביטול", callback_data="menu:back")])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 def back_keyboard(callback: str) -> InlineKeyboardMarkup:
