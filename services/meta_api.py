@@ -4,7 +4,13 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-BASE_URL = "https://graph.facebook.com/v19.0"
+BASE_URL = "https://graph.facebook.com/v21.0"
+
+_DATE_PRESETS = {1: "today", 7: "last_7d", 14: "last_14d", 30: "last_30d", 90: "last_90d"}
+
+
+def _date_preset(days: int) -> str:
+    return _DATE_PRESETS.get(days, f"last_{days}d")
 
 
 class MetaAPIError(Exception):
@@ -62,7 +68,7 @@ class MetaAPI:
             f"{campaign_id}/insights",
             {
                 "fields": "impressions,clicks,spend,ctr,cpc,cpp,reach,frequency,actions",
-                "date_preset": f"last_{days}_days",
+                "date_preset": _date_preset(days),
             }
         )
         result = data.get("data", [])
@@ -103,7 +109,7 @@ class MetaAPI:
             f"{adset_id}/insights",
             {
                 "fields": "impressions,clicks,spend,ctr,cpc,reach,actions",
-                "date_preset": f"last_{days}_days",
+                "date_preset": _date_preset(days),
             }
         )
         result = data.get("data", [])
@@ -125,7 +131,7 @@ class MetaAPI:
             f"{self.account_id}/insights",
             {
                 "fields": "impressions,clicks,spend,ctr,cpc,reach,frequency,actions,cost_per_action_type",
-                "date_preset": f"last_{days}_days",
+                "date_preset": _date_preset(days),
                 "level": "account"
             }
         )

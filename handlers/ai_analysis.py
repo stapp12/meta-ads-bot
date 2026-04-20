@@ -35,7 +35,7 @@ async def ai_analyze_account(callback: CallbackQuery):
         api = MetaAPI(acc.token, acc.account_id)
         report_data = await api.get_full_daily_report()
 
-        analysis = analyze_campaigns(report_data, acc.name)
+        analysis = await analyze_campaigns(report_data, acc.name)
 
         from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
         kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -72,7 +72,7 @@ async def ai_optimization_tips(callback: CallbackQuery):
     try:
         api = MetaAPI(acc.token, acc.account_id)
         campaigns = await api.get_campaigns()
-        tips = get_optimization_tips(campaigns, acc.name)
+        tips = await get_optimization_tips(campaigns, acc.name)
 
         await callback.message.edit_text(
             f"💡 *טיפים לאופטימיזציה — {acc.name}*\n\n{tips}",
@@ -108,7 +108,7 @@ async def ai_analyze_campaign(callback: CallbackQuery):
         campaign = next((c for c in campaigns if c["id"] == campaign_id), {})
         insights = await api.get_campaign_insights(campaign_id, days=7)
 
-        analysis = analyze_single_campaign(campaign, insights)
+        analysis = await analyze_single_campaign(campaign, insights)
 
         await callback.message.edit_text(
             f"🤖 *ניתוח AI — {campaign.get('name', 'קמפיין')}*\n\n{analysis}",
@@ -143,7 +143,7 @@ async def ai_analyze_adset(callback: CallbackQuery):
         insights = await api.get_adset_insights(adset_id, days=7)
 
         fake_campaign = {"name": f"אדסט {adset_id}", "status": "ACTIVE", "objective": "—"}
-        analysis = analyze_single_campaign(fake_campaign, insights)
+        analysis = await analyze_single_campaign(fake_campaign, insights)
 
         await callback.message.edit_text(
             f"🤖 *ניתוח AI — אדסט*\n\n{analysis}",

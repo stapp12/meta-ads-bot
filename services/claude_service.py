@@ -4,15 +4,15 @@ from config import config
 
 logger = logging.getLogger(__name__)
 
-client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+client = anthropic.AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY)
 
-SYSTEM_PROMPT = """אתה מנתח קמפיינים מומחה של Meta Ads. 
+SYSTEM_PROMPT = """אתה מנתח קמפיינים מומחה של Meta Ads.
 אתה מספק ניתוחים חכמים, ממוקדים ואקציונביליים בעברית.
 התשובות שלך ישירות, ברורות ועם המלצות ספציפיות.
 השתמש באימוג'י בצורה מדודה כדי לשפר קריאות."""
 
 
-def analyze_campaigns(report_data: dict, account_name: str) -> str:
+async def analyze_campaigns(report_data: dict, account_name: str) -> str:
     """ניתוח קמפיינים עם Claude"""
     try:
         insights_today = report_data.get("insights_today", {})
@@ -46,7 +46,7 @@ def analyze_campaigns(report_data: dict, account_name: str) -> str:
 
 כתוב בצורה תמציתית ומקצועית."""
 
-        message = client.messages.create(
+        message = await client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=800,
             system=SYSTEM_PROMPT,
@@ -59,7 +59,7 @@ def analyze_campaigns(report_data: dict, account_name: str) -> str:
         return "❌ לא ניתן לטעון ניתוח AI כרגע."
 
 
-def analyze_single_campaign(campaign: dict, insights: dict) -> str:
+async def analyze_single_campaign(campaign: dict, insights: dict) -> str:
     """ניתוח קמפיין בודד"""
     try:
         prompt = f"""נתח את הקמפיין הבא:
@@ -79,7 +79,7 @@ def analyze_single_campaign(campaign: dict, insights: dict) -> str:
 
 תן ניתוח קצר (3-4 משפטים) עם המלצה מעשית אחת ספציפית."""
 
-        message = client.messages.create(
+        message = await client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=400,
             system=SYSTEM_PROMPT,
@@ -92,7 +92,7 @@ def analyze_single_campaign(campaign: dict, insights: dict) -> str:
         return "❌ לא ניתן לטעון ניתוח AI כרגע."
 
 
-def get_optimization_tips(campaigns: list, account_name: str) -> str:
+async def get_optimization_tips(campaigns: list, account_name: str) -> str:
     """טיפים לאופטימיזציה"""
     try:
         campaigns_summary = "\n".join([
@@ -106,7 +106,7 @@ def get_optimization_tips(campaigns: list, account_name: str) -> str:
 תן 3 טיפים מעשיים לאופטימיזציה שניתן ליישם עכשיו.
 כל טיפ: שורה אחת, ישיר ואקציונבילי."""
 
-        message = client.messages.create(
+        message = await client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=300,
             system=SYSTEM_PROMPT,
